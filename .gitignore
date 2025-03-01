@@ -1,0 +1,69 @@
+# Node.js / General Backend
+node_modules/           # Ignore installed dependencies (reinstalled via package.json)
+*.log                   # Log files (e.g., npm logs, error logs)
+npm-debug.log          # Debugging logs from npm
+yarn-error.log         # Yarn error logs
+.env                   # Environment variables (e.g., database URI, JWT secrets)
+*.env.local            # Local env files
+*.env.development      # Dev-specific env files
+*.env.production       # Prod-specific env files
+/dist                  # Build output folder (if you bundle backend)
+build/                 # Alternative build folder name
+
+# MongoDB
+*.dump                  # MongoDB dump files (if you export data)
+mongo_data/            # Local MongoDB data folder (if running locally)
+
+# React / Frontend
+/build                 # React production build folder
+/public/build          # Alternative build location
+*.DS_Store             # macOS system files (if you’re on a Mac)
+*.swp                  # Vim swap files
+
+# Testing
+coverage/              # Test coverage reports (e.g., from Jest)
+*.test.js              # Optional: Ignore test files (remove if you want them tracked)
+
+# Miscellaneous
+*.zip                  # Ignore archived files
+*.tar.gz               # Ignore tarballs
+temp/                  # Temporary folder
+*.tmp                  # Temporary files
+.vscode/               # VS Code settings (optional, if you don’t share them)
+
+# Large Files (if applicable)
+*.mp4                  # Example: Ignore media files (add others as needed)
+*.pdf                  # Ignore PDFs (e.g., documentation drafts)
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+*.egg-info/
+dist/
+build/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# VS Code
+.vscode/
+
+# PyCharm
+.idea/
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db

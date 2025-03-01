@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+pymongo
+pydantic
+passlib[bcrypt]
+pyjwt
+opencv-python
+requests
+numpy
+pyttsx3
+SpeechRecognition
+pymongo
+openai
