@@ -22,7 +22,6 @@ app.add_middleware(
 MONGO_URI = ""
 client = MongoClient(MONGO_URI)
 db = client["study_tracker"]
-
 # ✅ Password Hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -36,10 +35,11 @@ class User(BaseModel):
     email: str
     password: str
 
-# ✅ Task Model
+# ✅ Task Model (Updated for start time, end time, and validation)
 class Task(BaseModel):
     task: str
-    task_schedule: str
+    task_schedule: str  # Start datetime
+    task_end_time: str  # End datetime
     status: str = "pending"
 
 # ✅ Helper function to verify token & extract user email
@@ -87,12 +87,20 @@ async def add_task(request: Request):
     user_email = verify_token(token)
 
     data = await request.json()
-    if not all(key in data for key in ["task_schedule", "task", "status"]):
+    if not all(key in data for key in ["task_schedule", "task", "status", "task_end_time"]):
         raise HTTPException(status_code=400, detail="Missing task fields")
+
+    # Validate that end time is after start time
+    task_start = datetime.datetime.fromisoformat(data["task_schedule"])
+    task_end = datetime.datetime.fromisoformat(data["task_end_time"])
+
+    if task_end <= task_start:
+        raise HTTPException(status_code=400, detail="End time must be after start time")
 
     task_data = {
         "user_email": user_email,
         "task_schedule": data["task_schedule"],
+        "task_end_time": data["task_end_time"],
         "task": data["task"],
         "status": data["status"],
     }
@@ -112,7 +120,7 @@ async def get_tasks(request: Request):
     token = auth_header.split("Bearer ")[1]
     user_email = verify_token(token)
 
-    tasks = list(db.tasks.find({"user_email": user_email}, {"_id": 1, "task_schedule": 1, "task": 1, "status": 1}))
+    tasks = list(db.tasks.find({"user_email": user_email}, {"_id": 1, "task_schedule": 1, "task_end_time": 1, "task": 1, "status": 1}))
 
     for task in tasks:
         task["_id"] = str(task["_id"])

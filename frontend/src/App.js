@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
-import "./App.css"; 
+import "./App.css";
 
 function App() {
     const [email, setEmail] = useState("");
@@ -9,7 +9,9 @@ function App() {
     const [token, setToken] = useState(localStorage.getItem("token") || null);
     const [tasks, setTasks] = useState([]);
     const [task, setTask] = useState("");
-    const [taskSchedule, setTaskSchedule] = useState("");
+    const [taskStartDate, setTaskStartDate] = useState(""); // Start date for task
+    const [taskStartTime, setTaskStartTime] = useState(""); // Start time for task
+    const [taskEndTime, setTaskEndTime] = useState(""); // End time for task
     const [status, setStatus] = useState("pending");
     const [isRegistering, setIsRegistering] = useState(false);
 
@@ -17,6 +19,7 @@ function App() {
         baseURL: "http://localhost:8000",
     });
 
+    // Fetch tasks function
     const fetchTasks = useCallback(async () => {
         if (!token) return;
         try {
@@ -36,7 +39,7 @@ function App() {
         }
     }, [token, fetchTasks]);
 
-    // ✅ **Fixed missing functions**
+    // Register user function
     const registerUser = async () => {
         try {
             await api.post("/register", { username, email, password });
@@ -47,6 +50,7 @@ function App() {
         }
     };
 
+    // Login user function
     const loginUser = async () => {
         try {
             const response = await api.post("/login", { email, password });
@@ -60,6 +64,7 @@ function App() {
         }
     };
 
+    // Logout user function
     const logoutUser = () => {
         setToken(null);
         localStorage.removeItem("token");
@@ -67,6 +72,7 @@ function App() {
         alert("Logged out successfully!");
     };
 
+    // Update task status function
     const updateTaskStatus = async (taskId, newStatus) => {
         try {
             await api.put(`/update-task/${taskId}`, { status: newStatus }, {
@@ -80,6 +86,7 @@ function App() {
         }
     };
 
+    // Delete task function
     const deleteTask = async (taskId) => {
         try {
             await api.delete(`/delete-task/${taskId}`, {
@@ -93,11 +100,28 @@ function App() {
         }
     };
 
+    // Add task function (with start and end time on the same day)
     const addTask = async () => {
         try {
-            await api.post("/add-task", { task_schedule: taskSchedule, task, status }, {
-                headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-            });
+            const taskStartDateTime = `${taskStartDate}T${taskStartTime}`;
+            const taskEndDateTime = `${taskStartDate}T${taskEndTime}`;
+
+            // Check if end time is after start time
+            if (new Date(taskEndDateTime) <= new Date(taskStartDateTime)) {
+                alert("End time must be later than start time.");
+                return;
+            }
+
+            await api.post("/add-task", 
+                { 
+                    task_schedule: taskStartDateTime,  // Combine start date and time
+                    task_end_time: taskEndDateTime,    // Combine end date and end time
+                    task, 
+                    status 
+                }, 
+                {
+                    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+                });
             alert("Task added successfully!");
             fetchTasks();
         } catch (error) {
@@ -108,14 +132,15 @@ function App() {
 
     return (
         <div className="container">
-            {/* 🔹 Logo at the top-left */}
+            {/* Logo and App Heading */}
             <div className="logo-container">
                 <img src="logo.png" alt="Logo" />
             </div>
             <h1>
-                Study Desk Assistant
-                <img src="logo.png" alt="Logo" />
-                </h1>
+                Study Buddy
+            </h1>
+
+            {/* Conditional Rendering for Login/Register or Task Management */}
             {!token ? (
                 <div className="login-box">
                     <h2>{isRegistering ? "Sign Up" : "Login"}</h2>
@@ -130,7 +155,7 @@ function App() {
                         <button onClick={loginUser} className="btn">Login</button>
                     )}
                     <p>
-                        {isRegistering ? "Already have an account?" : "Don't have an account?"} {" "}
+                        {isRegistering ? "Already have an account?" : "Don't have an account?"}{" "}
                         <button onClick={() => setIsRegistering(!isRegistering)} className="link-btn">
                             {isRegistering ? "Login" : "Register"}
                         </button>
@@ -138,37 +163,91 @@ function App() {
                 </div>
             ) : (
                 <>
+                    {/* Logout Button */}
                     <button onClick={logoutUser} className="btn logout">Logout</button>
+
+                    {/* Task Management */}
                     <h2>Task Management</h2>
                     <input type="text" placeholder="Task" value={task} onChange={(e) => setTask(e.target.value)} />
-                    <input type="datetime-local" value={taskSchedule} onChange={(e) => setTaskSchedule(e.target.value)} />
+
+                    {/* Start Date and Time */}
+                    <div className="task-time-inputs">
+                        <label htmlFor="taskStartDate">Start Date</label>
+                        <input 
+                            type="date" 
+                            id="taskStartDate" 
+                            value={taskStartDate} 
+                            onChange={(e) => setTaskStartDate(e.target.value)} 
+                        />
+                    </div>
+                    <div className="task-time-inputs">
+                        <label htmlFor="taskStartTime">Start Time</label>
+                        <input 
+                            type="time" 
+                            id="taskStartTime" 
+                            value={taskStartTime} 
+                            onChange={(e) => setTaskStartTime(e.target.value)} 
+                        />
+                    </div>
+
+                    {/* End Time */}
+                    <div className="task-time-inputs">
+                        <label htmlFor="taskEndTime">End Time</label>
+                        <input 
+                            type="time" 
+                            id="taskEndTime" 
+                            value={taskEndTime} 
+                            onChange={(e) => setTaskEndTime(e.target.value)} 
+                        />
+                    </div>
+
                     <select value={status} onChange={(e) => setStatus(e.target.value)}>
                         <option value="pending">Pending</option>
                         <option value="incomplete">Incomplete</option>
                         <option value="completed">Completed</option>
                     </select>
                     <button onClick={addTask} className="btn">Add Task</button>
+
                     <h3>Your Tasks</h3>
                     <button onClick={fetchTasks} className="btn">Load Tasks</button>
-                    <ul>
-                        {tasks.length > 0 ? (
-                            tasks.map((task) => (
-                                <li key={task._id}>
-                                    {task.task} - {task.status} ({task.task_schedule})
-                                    <button onClick={() => updateTaskStatus(task._id, "completed")} className="btn">Mark Completed</button>
-                                    <button onClick={() => updateTaskStatus(task._id, "incomplete")} className="btn">Mark Incomplete</button>
-                                    <button onClick={() => deleteTask(task._id)} className="btn">Delete</button>
-                                </li>
-                            ))
-                        ) : (
-                            <p>No tasks found. Click "Load Tasks".</p>
-                        )}
-                    </ul>
+
+                    {/* Task Table */}
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Task</th>
+                                <th>Status</th>
+                                <th>Start Date</th>
+                                <th>Start Time</th>
+                                <th>End Time</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {tasks.length > 0 ? (
+                                tasks.map((task) => (
+                                    <tr key={task._id}>
+                                        <td>{task.task}</td>
+                                        <td>{task.status}</td>
+                                        <td>{new Date(task.task_schedule).toLocaleDateString()}</td>
+                                        <td>{new Date(task.task_schedule).toLocaleTimeString()}</td>
+                                        <td>{new Date(task.task_end_time).toLocaleTimeString()}</td>
+                                        <td>
+                                            <button onClick={() => updateTaskStatus(task._id, "completed")} className="btn">Mark Completed</button>
+                                            <button onClick={() => updateTaskStatus(task._id, "incomplete")} className="btn">Mark Incomplete</button>
+                                            <button onClick={() => deleteTask(task._id)} className="btn">Delete</button>
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr><td colSpan="6">No tasks found. Click "Load Tasks".</td></tr>
+                            )}
+                        </tbody>
+                    </table>
                 </>
             )}
         </div>
     );
 }
-
 
 export default App;

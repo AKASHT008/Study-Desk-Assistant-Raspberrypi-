@@ -1,6 +1,8 @@
 /* General Page Styling */
 body {
-  background: linear-gradient(to right, #141e30, #243b55);
+  background: url(../public/background.jpg) no-repeat center center fixed; 
+  background-size: cover; /* Ensures the image covers the whole page */
+  backdrop-filter: blur(5px);
   font-family: 'Arial', sans-serif;
   color: white;
   margin: 0;
@@ -17,7 +19,7 @@ body {
   max-width: 600px;
   text-align: center;
   padding: 20px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.6); /* Optional: Adding dark overlay for readability */
   border-radius: 15px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
@@ -122,4 +124,15 @@ li button:hover {
 
 .logout:hover {
   background-color: #cc0000;
+}
+
+/* Login Box Background */
+.login-box {
+  background: rgba(0, 0, 0, 0.7); /* Dark overlay to ensure readability */
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  width: 100%;
+  max-width: 400px;
+  color: white;
 }
